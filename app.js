@@ -113,22 +113,25 @@ function getHotspotColorExpression() {
 }
 
 // ─── Braking filter helpers ───────────────────────────────────────────────────
-// When a trip is selected while braking is active, filter hotspots to that trip.
-// When deselected, show all hotspots again.
-function applyBrakingTripFilter(tripId) {
+// When a trip (or sensor's set of trips) is selected while braking is active,
+// filter hotspots down to just those trips AND grid them at finer resolution —
+// cheap once we're only gridding a handful of trips instead of the whole
+// dataset, and it gets rid of the patchy/blocky look on an isolated trip.
+// When deselected, restore the full dataset at the coarser (RAM-friendly) grid.
+function applyBrakingTripFilter(tripIdOrIds) {
   if (!map.getSource('braking-hotspots')) return;
 
   const source = map.getSource('trips');
   const allFeatures = source?._data?.features || [];
 
-  if (tripId) {
-    // Rebuild hotspots for just this trip
-    const tripFeatures = allFeatures.filter(f => f.properties.trip_id === tripId);
-    const filtered = buildBrakingHotspots(tripFeatures);
+  if (tripIdOrIds) {
+    const ids = new Set(Array.isArray(tripIdOrIds) ? tripIdOrIds : [tripIdOrIds]);
+    const tripFeatures = allFeatures.filter(f => ids.has(f.properties.trip_id));
+    const filtered = buildBrakingHotspots(tripFeatures, BRAKING_CELL_SIZE_ISOLATED);
     map.getSource('braking-hotspots').setData(filtered);
   } else {
-    // Restore all hotspots
-    const all = buildBrakingHotspots(allFeatures);
+    // Restore all hotspots at the coarser full-dataset grid
+    const all = buildBrakingHotspots(allFeatures, BRAKING_CELL_SIZE_FULL);
     map.getSource('braking-hotspots').setData(all);
   }
 }
@@ -344,6 +347,7 @@ function highlightSensor(sensor) {
   } else {
     selectedTrip = null;
     applyGroupFilter(matches);
+    if (showBraking) applyBrakingTripFilter(matches);
     document.getElementById('statTripRow').style.display      = 'none';
     document.getElementById('statDistanceRow').style.display  = 'none';
     document.getElementById('statAvgSpeedRow').style.display  = 'none';
@@ -428,8 +432,14 @@ async function setupAveragedSegments(labelLayerId) {
 }
 
 // ─── Braking hotspot accumulation ────────────────────────────────────────────
-function buildBrakingHotspots(features) {
-  const CELL_SIZE = 0.0002;
+// Grid ("tile") size in degrees. Coarser = fewer cells = lighter on RAM when
+// gridding the whole dataset; finer = smoother/more precise, cheap once we've
+// already narrowed down to a single trip or sensor's worth of points.
+const BRAKING_CELL_SIZE_FULL     = 0.0002;   // ~22m — used for all trips at once
+const BRAKING_CELL_SIZE_ISOLATED = 0.00004;  // ~4.5m — used once a trip/sensor is selected
+
+function buildBrakingHotspots(features, cellSize = BRAKING_CELL_SIZE_FULL) {
+  const CELL_SIZE = cellSize;
   const grid = new Map();
 
   for (const f of features) {
@@ -441,7 +451,9 @@ function buildBrakingHotspots(features) {
 
     const cellLng = Math.round(lng / CELL_SIZE) * CELL_SIZE;
     const cellLat = Math.round(lat / CELL_SIZE) * CELL_SIZE;
-    const key     = `${cellLng.toFixed(4)},${cellLat.toFixed(4)}`;
+    // 6 decimals keeps the dedup key finer than either grid size above so
+    // adjacent cells never collide when CELL_SIZE shrinks for isolated views.
+    const key     = `${cellLng.toFixed(6)},${cellLat.toFixed(6)}`;
 
     if (!grid.has(key)) {
       grid.set(key, {
