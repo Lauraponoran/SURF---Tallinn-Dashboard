@@ -25,6 +25,9 @@ let showAveragedSegments = false;
 let averagedSegmentMode = 'composite';
 let activeFilter = null;
 let showBraking = false;
+let tripDates = {};        // trip_id -> 'YYYY-MM-DD'
+let selectedSensorFilter = '';
+let selectedDateFilter   = '';
 
 // ─── Sensor colours ───────────────────────────────────────────────────────────
 const SENSOR_COLORS = [
@@ -265,6 +268,13 @@ function resetSelection() {
   ['speedColorsCheckbox','roadQualityCheckbox','averagedSegmentsCheckbox','brakingCheckbox'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.checked = false;
+  });
+
+  selectedSensorFilter = '';
+  selectedDateFilter   = '';
+  ['sensorFilterSelect','dateFilterSelect'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
 
   document.getElementById('speedLegend').style.display            = 'none';
@@ -571,6 +581,8 @@ map.on('load', async () => {
     console.log(`📊 ${tripIds.length} unique trips loaded`);
 
     buildSensorColorMap(tripIds);
+    buildTripDateMap(geojson.features || []);
+    renderFilterDropdowns();
 
     map.addSource('trips', {
       type: 'geojson',
@@ -620,16 +632,18 @@ map.on('load', async () => {
       const avgSpeed   = geoAvgSpd;
       const maxSpeed   = geoMaxSpd;
       const duration   = formatDuration(Math.round(geoTime));
+      const rideDate   = getTripDate(tripId);
 
       const qualityLabels = { 0:'Unknown', 1:'Perfect', 2:'Normal', 3:'Outdated', 4:'Bad', 5:'No road' };
       const popupName  = tripId.replace(/_/g, ' ').trim();
       const brakingLine = geoBraking > 0 ? `<br>🛑 Braking events: ${geoBraking}` : '';
+      const dateLine    = rideDate ? `📅 Date: ${rideDate}<br>` : '';
 
       currentPopup = new mapboxgl.Popup()
         .setLngLat(e.lngLat)
         .setHTML(`
           <strong>${popupName}</strong><br>
-          🚴 Speed at point: ${speed} km/h<br>
+          ${dateLine}🚴 Speed at point: ${speed} km/h<br>
           🛣️ Road quality: ${roadQuality} (${qualityLabels[roadQuality] || 'Unknown'})<br>
           📊 Average speed: ${avgSpeed} km/h<br>
           🏁 Max speed: ${maxSpeed} km/h<br>
@@ -883,6 +897,90 @@ function updateStatsFromMetadata() {
   document.getElementById('statDistance').textContent  = `${(totalDist / 1000).toFixed(1)} km`;
   document.getElementById('statAvgSpeed').textContent  = `${avgSpeed} km/h`;
   document.getElementById('statTotalTime').textContent = formatDuration(Math.round(totalTime));
+}
+
+// ─── Trip dates ───────────────────────────────────────────────────────────────
+// Uses each trip's first available "timestamp" property (added by
+// generate_trips_geojson.py). Older trips.geojson files generated before that
+// change won't have this field, so trips just won't appear in the date map/dropdown.
+function buildTripDateMap(features) {
+  tripDates = {};
+  for (const f of features) {
+    const tid = f.properties.trip_id;
+    const ts  = f.properties.timestamp;
+    if (!tid || !ts || tripDates[tid]) continue;
+    tripDates[tid] = ts.slice(0, 10); // 'YYYY-MM-DD'
+  }
+}
+
+function getTripDate(tripId) {
+  return tripDates[tripId] || null;
+}
+
+// ─── Sensor + date filter dropdowns ────────────────────────────────────────────
+function renderFilterDropdowns() {
+  const sensorSelect = document.getElementById('sensorFilterSelect');
+  const dateSelect   = document.getElementById('dateFilterSelect');
+  if (!sensorSelect || !dateSelect) return;
+
+  const sensors = Object.keys(sensorColorMap).sort();
+  sensorSelect.innerHTML = `<option value="">All sensors</option>` +
+    sensors.map(s => `<option value="${s}">${s}</option>`).join('');
+
+  const dates = [...new Set(Object.values(tripDates))].filter(Boolean).sort();
+  dateSelect.innerHTML = `<option value="">All dates</option>` +
+    dates.map(d => `<option value="${d}">${d}</option>`).join('');
+  dateSelect.parentElement.style.display = dates.length ? '' : 'none';
+
+  sensorSelect.addEventListener('change', () => {
+    selectedSensorFilter = sensorSelect.value;
+    applyDropdownFilters();
+  });
+  dateSelect.addEventListener('change', () => {
+    selectedDateFilter = dateSelect.value;
+    applyDropdownFilters();
+  });
+}
+
+function applyDropdownFilters() {
+  if (!selectedSensorFilter && !selectedDateFilter) {
+    resetSelection();
+    return;
+  }
+
+  let matches = tripIds;
+  if (selectedSensorFilter) matches = matches.filter(id => id.split('_')[0] === selectedSensorFilter);
+  if (selectedDateFilter)   matches = matches.filter(id => tripDates[id] === selectedDateFilter);
+
+  if (matches.length === 0) {
+    if (currentPopup) { currentPopup.remove(); currentPopup = null; }
+    applyGroupFilter([]);
+    document.getElementById('statTripRow').style.display      = 'none';
+    document.getElementById('statDistanceRow').style.display  = 'none';
+    document.getElementById('statAvgSpeedRow').style.display  = 'none';
+    document.getElementById('statTotalTimeRow').style.display = 'none';
+    document.getElementById('selectedTripRow').style.display  = 'flex';
+    document.getElementById('selectedTrip').textContent = 'No matching trips';
+    updateResetButtonVisibility();
+    return;
+  }
+
+  if (matches.length === 1) {
+    selectedTrip = matches[0];
+    applyTripFilter(matches[0]);
+    showSelection(matches[0]);
+  } else {
+    selectedTrip = null;
+    applyGroupFilter(matches);
+    if (showBraking) applyBrakingTripFilter(matches);
+    document.getElementById('statTripRow').style.display      = 'none';
+    document.getElementById('statDistanceRow').style.display  = 'none';
+    document.getElementById('statAvgSpeedRow').style.display  = 'none';
+    document.getElementById('statTotalTimeRow').style.display = 'none';
+    document.getElementById('selectedTripRow').style.display  = 'flex';
+    document.getElementById('selectedTrip').textContent = `${matches.length} trips`;
+    updateResetButtonVisibility();
+  }
 }
 
 function renderSensorLegend() {
