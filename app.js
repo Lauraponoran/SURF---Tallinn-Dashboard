@@ -20,7 +20,6 @@ let speedMode = 'gradient';
 let showSpeedColors = false;
 let showRoadQuality = false;
 let selectedTrip = null;
-let tripsMetadata = null;
 let currentPopup = null;
 let showAveragedSegments = false;
 let averagedSegmentMode = 'composite';
@@ -135,22 +134,6 @@ function applyBrakingTripFilter(tripId) {
 }
 
 // ─── Data loading ─────────────────────────────────────────────────────────────
-async function loadMetadata() {
-  const paths = [`${CONFIG.DATA_URL}trips_metadata.json`, './trips_metadata.json', 'trips_metadata.json'];
-  for (const path of paths) {
-    try {
-      const r = await fetch(path);
-      if (r.ok) {
-        tripsMetadata = await r.json();
-        console.log('✅ Metadata loaded for', Object.keys(tripsMetadata).length, 'trips');
-        return tripsMetadata;
-      }
-    } catch {}
-  }
-  console.warn('⚠️ Could not load metadata');
-  return null;
-}
-
 async function loadTripsGeoJSON() {
   const loadingEl = document.getElementById('loadingIndicator');
   if (loadingEl) loadingEl.style.display = 'block';
@@ -181,38 +164,6 @@ async function loadAveragedSegments() {
     } catch {}
   }
   console.error('❌ Could not load averaged segments');
-  return null;
-}
-
-// ─── Stats helpers ────────────────────────────────────────────────────────────
-function getTripStats(tripId) {
-  if (!tripsMetadata) return null;
-  const variants = [
-    tripId,
-    tripId.replace(/_clean_processed$/i, ''),
-    tripId.replace(/_clean$/i, ''),
-    tripId.replace(/_processed$/i, ''),
-    tripId.split('_clean')[0],
-    tripId.split('_processed')[0],
-  ];
-  const m = tripId.match(/^(.+_Trip\d+)/i);
-  if (m) variants.push(m[1]);
-  for (const v of variants) {
-    if (tripsMetadata[v]) {
-      const meta = tripsMetadata[v].metadata || tripsMetadata[v];
-      const gnss = meta['GNSS'];
-      if (!gnss) return null;
-      const parts = gnss.split(',');
-      return {
-        duration: parts[1], stops: parts[2],
-        distance: parseFloat(parts[3]) || 0,
-        avgSpeed: parseFloat(parts[4]) || 0,
-        avgSpeedWOS: parseFloat(parts[5]) || 0,
-        maxSpeed: parseFloat(parts[6]) || 0,
-        elevation: parseFloat(parts[11]) || 0,
-      };
-    }
-  }
   return null;
 }
 
@@ -597,7 +548,6 @@ map.on('error', e => console.error('❌ Map error:', e));
 
 map.on('load', async () => {
   console.log('✅ Map loaded');
-  await loadMetadata();
 
   const labelLayerId = getFirstLabelLayerId();
   console.log(`📌 Inserting layers before basemap layer: "${labelLayerId}"`);
@@ -645,7 +595,6 @@ map.on('load', async () => {
       applyTripFilter(tripId); // also filters braking hotspots if showBraking
       showSelection(tripId);
 
-      const stats      = getTripStats(tripId);
       const allFeats   = map.getSource('trips')?._data?.features || [];
       const tripFeats  = allFeats.filter(f => f.properties.trip_id === tripId);
       const geoDistKm  = (tripFeats.reduce((s, f) => s + (f.properties.gps_distance_m || 0), 0) / 1000).toFixed(2);
@@ -655,10 +604,10 @@ map.on('load', async () => {
       const geoMaxSpd  = geoSpeeds.length ? Math.max(...geoSpeeds).toFixed(1) : '—';
       const geoBraking = tripFeats.filter(f => f.properties.is_braking).length;
 
-      const distanceKm = stats ? stats.distance.toFixed(2) : geoDistKm;
-      const avgSpeed   = stats ? stats.avgSpeed.toFixed(1)  : geoAvgSpd;
-      const maxSpeed   = stats ? stats.maxSpeed.toFixed(1)  : geoMaxSpd;
-      const duration   = stats ? stats.duration             : formatDuration(Math.round(geoTime));
+      const distanceKm = geoDistKm;
+      const avgSpeed   = geoAvgSpd;
+      const maxSpeed   = geoMaxSpd;
+      const duration   = formatDuration(Math.round(geoTime));
 
       const qualityLabels = { 0:'Unknown', 1:'Perfect', 2:'Normal', 3:'Outdated', 4:'Bad', 5:'No road' };
       const popupName  = tripId.replace(/_/g, ' ').trim();
