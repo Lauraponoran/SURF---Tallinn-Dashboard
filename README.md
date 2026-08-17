@@ -1,4 +1,4 @@
-# 🚴 Cycling Behaviour Dashboard
+# Cycling Behaviour Dashboard
 
 A bike sensor data visualization tool that turns GPS + accelerometer data
 into an interactive map: speed coloring, road quality, and sudden-braking
