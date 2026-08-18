@@ -176,7 +176,7 @@ async function loadAveragedSegments() {
 
 function formatDuration(s) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
-  return h > 0 ? `${h}h ${m}min` : `${m}min`;
+  return h > 0 ? `${h} h ${m} min` : `${m} min`;
 }
 
 function hasAccordionFilter() {
