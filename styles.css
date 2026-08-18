@@ -296,6 +296,10 @@ input[type="range"] {
 /* Sensor legend: cap to ~5 rows and scroll for the rest, with the
    "Sensors" title pinned at the top of the scroll area. */
 #sensorLegend {
+  /* Wider than the default .legend max-width (220px) so the scrollbar
+     gutter doesn't eat into the row text/labels. */
+  min-width: 200px;
+  max-width: 260px;
   /* The panel is anchored with `bottom`, so on short viewports it can
      grow upward past the top of #mapContainer and overlap whatever's
      above it (fullscreen/manual buttons) — that's the stray color
@@ -314,14 +318,35 @@ input[type="range"] {
      padding-top instead. Left/right/bottom padding stay since those
      don't interact with the sticky vertical positioning. */
   padding-top: 0;
-  /* Deliberately relying on the global scrollbar-hiding rule above —
-     a native scrollbar is drawn for this element's full scrollport,
-     which includes the sticky title (it's still inside this same
-     scrolling box), so there's no way to keep a real scrollbar out of
-     that area short of restructuring the HTML. A bottom fade + inset
-     shadow (below) signal "scrollable" instead, without a track
-     running past the title. */
-  position: relative;
+  /* Reserve space for the scrollbar permanently (rather than "auto",
+     which lets Firefox/older engines collapse the gutter away and
+     lets OS-overlay scrollbars fade out) so it reads as scrollable
+     at rest, not just while actively scrolling. */
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(52, 204, 204, 0.8) rgba(255, 255, 255, 0.08);
+}
+
+#sensorLegend::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+#sensorLegend::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+#sensorLegend::-webkit-scrollbar-thumb {
+  /* Brighter + opaque so the thumb reads clearly against the blurred
+     panel background instead of nearly disappearing into it. */
+  background: rgba(52, 204, 204, 0.85);
+  border-radius: 3px;
+  min-height: 24px;
+}
+
+#sensorLegend::-webkit-scrollbar-thumb:hover {
+  background: var(--sc-cyan);
 }
 
 #sensorLegend h4 {
@@ -341,27 +366,6 @@ input[type="range"] {
   margin: 0 -12px 10px;
   padding: 12px 12px 8px;
   z-index: 1;
-}
-
-/* Scrollability cue: a soft fade pinned to the bottom edge of the
-   visible list, hinting there's more content below without a
-   scrollbar track that would otherwise have to run past the title.
-   It's sticky (not just placed at the container's bottom) so it
-   stays visible as you scroll through the middle of a long list;
-   once you reach the actual end of the list it settles into the flow
-   and stops floating over content, which doubles as a natural
-   "you've reached the bottom" signal. */
-#sensorLegend::after {
-  content: '';
-  display: block;
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 18px;
-  margin-top: -18px;
-  background: linear-gradient(to bottom, rgba(10, 16, 24, 0), rgba(10, 16, 24, 0.9));
-  pointer-events: none;
 }
 
 .speed-color-box {
