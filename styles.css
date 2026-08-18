@@ -298,13 +298,39 @@ input[type="range"] {
 #sensorLegend {
   max-height: 170px;
   overflow-y: auto;
+  /* Show a themed scrollbar here even though the global rule above
+     hides scrollbars everywhere else, so it visibly reads as scrollable. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(52, 204, 204, 0.5) rgba(255, 255, 255, 0.06);
+}
+
+#sensorLegend::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+}
+
+#sensorLegend::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+}
+
+#sensorLegend::-webkit-scrollbar-thumb {
+  background: rgba(52, 204, 204, 0.5);
+  border-radius: 3px;
+}
+
+#sensorLegend::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 204, 204, 0.8);
 }
 
 #sensorLegend h4 {
   position: sticky;
   top: 0;
-  background: var(--sc-panel-bg);
-  padding-bottom: 2px;
+  /* Solid, not the translucent panel var — otherwise scrolled-under
+     sensor rows show through the pinned title. */
+  background: #0a1018;
+  margin: 0 -12px 10px;
+  padding: 0 12px 8px;
   z-index: 1;
 }
 
