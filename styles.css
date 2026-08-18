@@ -296,14 +296,7 @@ input[type="range"] {
 /* Sensor legend: cap to ~5 rows and scroll for the rest, with the
    "Sensors" title pinned at the top of the scroll area. */
 #sensorLegend {
-  /* The panel is anchored with `bottom`, so on short viewports it can
-     grow upward past the top of #mapContainer and overlap whatever's
-     above it (fullscreen/manual buttons) — that's the stray color
-     strip appearing above "SENSORS". Cap to a share of the viewport
-     height so the panel shrinks on short windows instead of
-     overflowing past the container's top edge. (#mapContainer is
-     height:100vh, so vh here tracks the container's real height.) */
-  max-height: min(170px, 30vh);
+  max-height: 170px;
   overflow-y: auto;
   /* Reserve space for the scrollbar permanently (rather than "auto",
      which lets Firefox/older engines collapse the gutter away and
