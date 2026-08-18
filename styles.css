@@ -847,10 +847,7 @@ input[type="range"] {
   white-space: nowrap;
 }
 #controlsTab.open {
-  left: 200px; /* was 264px — panel is 280px wide and the tab is
-                  ~41px, so 264px pushed its right edge ~25px past
-                  the box, leaving it floating off the corner instead
-                  of sitting inside it. */
+  left: 232px;
 }
 #controlsTab:hover {
   background: rgba(52, 204, 204, 0.12);
