@@ -296,10 +296,6 @@ input[type="range"] {
 /* Sensor legend: cap to ~5 rows and scroll for the rest, with the
    "Sensors" title pinned at the top of the scroll area. */
 #sensorLegend {
-  /* Wider than the default .legend max-width (220px) so the scrollbar
-     gutter doesn't eat into the row text/labels. */
-  min-width: 200px;
-  max-width: 260px;
   /* The panel is anchored with `bottom`, so on short viewports it can
      grow upward past the top of #mapContainer and overlap whatever's
      above it (fullscreen/manual buttons) — that's the stray color
@@ -309,11 +305,6 @@ input[type="range"] {
      height:100vh, so vh here tracks the container's real height.) */
   max-height: min(170px, 30vh);
   overflow-y: auto;
-  /* Stop scroll "rubber-banding"/bounce (trackpads, momentum scroll)
-     from overshooting past the top or bottom of the list — without
-     this, a bounce past the top can momentarily reveal space above
-     the sticky title before snapping back. */
-  overscroll-behavior-y: contain;
   /* No top padding here — the sticky h4 below supplies its own
      padding-top instead. Left/right/bottom padding stay since those
      don't interact with the sticky vertical positioning. */
@@ -329,7 +320,7 @@ input[type="range"] {
 
 #sensorLegend::-webkit-scrollbar {
   display: block;
-  width: 8px;
+  width: 6px;
 }
 
 #sensorLegend::-webkit-scrollbar-track {
