@@ -176,7 +176,7 @@ async function loadAveragedSegments() {
 
 function formatDuration(s) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return h > 0 ? `${h}h ${m}min` : `${m}min`;
 }
 
 function hasAccordionFilter() {
@@ -636,7 +636,7 @@ map.on('load', async () => {
       const qualityLabels = { 0:'Unknown', 1:'Perfect', 2:'Normal', 3:'Outdated', 4:'Bad', 5:'No road' };
       const popupName  = tripId.replace(/_/g, ' ').trim();
       const brakingLine = geoBraking > 0 ? `<br>🛑 Braking events: ${geoBraking}` : '';
-      const dateLine    = rideDate ? `<br>📅 Date: ${rideDate}` : '';
+      const dateLine    = rideDate ? `<br>📅 Date: ${formatDateDMY(rideDate)}` : '';
 
       currentPopup = new mapboxgl.Popup()
         .setLngLat(e.lngLat)
@@ -919,6 +919,13 @@ function getTripDate(tripId) {
   return tripDates[tripId] || null;
 }
 
+// Converts an internal 'YYYY-MM-DD' date string to display format 'DD/MM/YYYY'.
+function formatDateDMY(isoDate) {
+  if (!isoDate) return null;
+  const [y, m, d] = isoDate.split('-');
+  return `${d}/${m}/${y}`;
+}
+
 // ─── Sensor + date filter panel ────────────────────────────────────────────────
 // This panel uses map.setFilter() on trips-layer to show/hide whole trips
 // while leaving the layer's paint (sensor colours, speed colours, etc.)
@@ -961,9 +968,11 @@ function renderFilterPanel() {
   if (!toggleBtn || !content || !listEl || !allCb || !fromInput || !toInput) return;
 
   // Accordion open/close
+  const chevron = toggleBtn.querySelector('.filter-accordion-chevron');
   toggleBtn.onclick = () => {
     content.hidden = !content.hidden;
     if (accordion) accordion.classList.toggle('open', !content.hidden);
+    if (chevron) chevron.textContent = content.hidden ? '⌄' : '⌃';
   };
 
   // Sensors default to "all selected" = no filtering
