@@ -304,7 +304,9 @@ input[type="range"] {
    which scrolls out of the way normally and then sticks flush. */
 #sensorLegend {
   max-height: 170px;
-  overflow-y: auto;
+  overflow-y: scroll; /* was auto — scroll guarantees the track is
+                          always rendered rather than only when the
+                          browser recalculates that content overflows */
   /* FIX: only overflow-y was set here, and per spec a lone non-visible
      overflow-y silently forces overflow-x to compute as "auto" too
      (not "visible"). That let the uppercase, letter-spaced "SENSORS"
@@ -845,7 +847,10 @@ input[type="range"] {
   white-space: nowrap;
 }
 #controlsTab.open {
-  left: 264px;
+  left: 200px; /* was 264px — panel is 280px wide and the tab is
+                  ~41px, so 264px pushed its right edge ~25px past
+                  the box, leaving it floating off the corner instead
+                  of sitting inside it. */
 }
 #controlsTab:hover {
   background: rgba(52, 204, 204, 0.12);
