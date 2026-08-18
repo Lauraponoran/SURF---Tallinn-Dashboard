@@ -294,16 +294,48 @@ input[type="range"] {
 }
 
 /* Sensor legend: cap to ~5 rows and scroll for the rest, with the
-   "Sensors" title pinned at the top of the scroll area. */
+   "Sensors" title pinned at the top of the scroll area.
+   NOTE: #sensorLegend is itself the scrolling element (overflow-y: auto)
+   but it also carries .legend's padding: 12px on all sides. If that top
+   padding stayed in place, it would sit inside the scrollport ahead of
+   the sticky <h4>, leaving a permanent gap above the title that no
+   amount of scrolling removes. So we zero out the container's top
+   padding and re-add the same visual spacing on the title itself,
+   which scrolls out of the way normally and then sticks flush. */
 #sensorLegend {
   max-height: 170px;
   overflow-y: auto;
+  padding-top: 0;
+
+  /* Scrollbars are hidden globally (see `* { scrollbar-width: none }`
+     above) for aesthetic reasons, but that leaves this box with zero
+     affordance that it scrolls. Re-enable a thin, theme-colored
+     scrollbar scoped to just this element — an ID selector beats the
+     universal `*` rule, so this wins without touching the global hide. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(52, 204, 204, 0.35) transparent;
+}
+#sensorLegend::-webkit-scrollbar {
+  display: block;
+  width: 5px;
+}
+#sensorLegend::-webkit-scrollbar-track {
+  background: transparent;
+}
+#sensorLegend::-webkit-scrollbar-thumb {
+  background: rgba(52, 204, 204, 0.35);
+  border-radius: 3px;
+}
+#sensorLegend::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 204, 204, 0.55);
 }
 
 #sensorLegend h4 {
   position: sticky;
   top: 0;
   background: var(--sc-panel-bg);
+  margin-top: 0;
+  padding-top: 12px;
   padding-bottom: 2px;
   z-index: 1;
 }
