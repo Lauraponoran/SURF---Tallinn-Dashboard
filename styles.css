@@ -298,13 +298,10 @@ input[type="range"] {
 #sensorLegend {
   max-height: 170px;
   overflow-y: auto;
-  /* Reserve space for the scrollbar permanently (rather than "auto",
-     which lets Firefox/older engines collapse the gutter away and
-     lets OS-overlay scrollbars fade out) so it reads as scrollable
-     at rest, not just while actively scrolling. */
-  scrollbar-gutter: stable;
+  /* Show a themed scrollbar here even though the global rule above
+     hides scrollbars everywhere else, so it visibly reads as scrollable. */
   scrollbar-width: thin;
-  scrollbar-color: rgba(52, 204, 204, 0.8) rgba(255, 255, 255, 0.08);
+  scrollbar-color: rgba(52, 204, 204, 0.5) rgba(255, 255, 255, 0.06);
 }
 
 #sensorLegend::-webkit-scrollbar {
@@ -313,20 +310,17 @@ input[type="range"] {
 }
 
 #sensorLegend::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 3px;
 }
 
 #sensorLegend::-webkit-scrollbar-thumb {
-  /* Brighter + opaque so the thumb reads clearly against the blurred
-     panel background instead of nearly disappearing into it. */
-  background: rgba(52, 204, 204, 0.85);
+  background: rgba(52, 204, 204, 0.5);
   border-radius: 3px;
-  min-height: 24px;
 }
 
 #sensorLegend::-webkit-scrollbar-thumb:hover {
-  background: var(--sc-cyan);
+  background: rgba(52, 204, 204, 0.8);
 }
 
 #sensorLegend h4 {
@@ -335,13 +329,8 @@ input[type="range"] {
   /* Solid, not the translucent panel var — otherwise scrolled-under
      sensor rows show through the pinned title. */
   background: #0a1018;
-  /* Extend up and out by the panel's own padding (12px) on all three
-     sides, then pad back in by the same amount. This pushes the title
-     flush to the very top/edges of the scroll area, so there's no gap
-     of container padding left for a scrolled-up row to peek through
-     above the pinned header. */
-  margin: -12px -12px 10px;
-  padding: 12px 12px 8px;
+  margin: 0 -12px 10px;
+  padding: 0 12px 8px;
   z-index: 1;
 }
 
