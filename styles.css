@@ -293,6 +293,21 @@ input[type="range"] {
   border-radius: 4px;
 }
 
+/* Sensor legend: cap to ~5 rows and scroll for the rest, with the
+   "Sensors" title pinned at the top of the scroll area. */
+#sensorLegend {
+  max-height: 170px;
+  overflow-y: auto;
+}
+
+#sensorLegend h4 {
+  position: sticky;
+  top: 0;
+  background: var(--sc-panel-bg);
+  padding-bottom: 2px;
+  z-index: 1;
+}
+
 .speed-color-box {
   width: 30px;
   height: 4px;
@@ -803,18 +818,24 @@ input[type="range"] {
 @media (max-width: 900px) {
 
   /* Controls panel: collapsed off-screen by default,
-     slides in when .open is toggled by the tab button */
+     slides in when .open is toggled by the tab button.
+     Fixed width (not just min-width) + hidden x-overflow +
+     an offset past the box-shadow's blur radius keeps the
+     whole panel — including its shadow — off-screen while
+     closed, so no sliver peeks in from the left edge. */
   #controls {
     position: fixed;
     top: 0;
-    left: -280px;
+    left: -300px;
+    width: 280px;
+    box-sizing: border-box;
     height: 100%;
     max-height: 100%;
-    min-width: 260px;
     border-radius: 0;
     z-index: 100;
     transition: left 0.3s ease;
     overflow-y: auto;
+    overflow-x: hidden;
   }
   #controls.open {
     left: 0;
