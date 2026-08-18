@@ -305,6 +305,10 @@ input[type="range"] {
      height:100vh, so vh here tracks the container's real height.) */
   max-height: min(170px, 30vh);
   overflow-y: auto;
+  /* No top padding here — the sticky h4 below supplies its own
+     padding-top instead. Left/right/bottom padding stay since those
+     don't interact with the sticky vertical positioning. */
+  padding-top: 0;
   /* Reserve space for the scrollbar permanently (rather than "auto",
      which lets Firefox/older engines collapse the gutter away and
      lets OS-overlay scrollbars fade out) so it reads as scrollable
@@ -342,12 +346,15 @@ input[type="range"] {
   /* Solid, not the translucent panel var — otherwise scrolled-under
      sensor rows show through the pinned title. */
   background: #0a1018;
-  /* Extend up and out by the panel's own padding (12px) on all three
-     sides, then pad back in by the same amount. This pushes the title
-     flush to the very top/edges of the scroll area, so there's no gap
-     of container padding left for a scrolled-up row to peek through
-     above the pinned header. */
-  margin: -12px -12px 10px;
+  /* Only horizontal negative margin here (safe — doesn't interact with
+     the sticky vertical math). Do NOT give a sticky first-child a
+     negative top margin: combined with `position: sticky` it throws
+     off Chromium's "stuck" containment calculation and lets a sliver
+     of the next row render above the header instead of being fully
+     covered — which is exactly the bleed-through bug. Top spacing is
+     recreated with plain padding-top instead (container's own
+     padding-top is removed below so there's no gap for it to fill). */
+  margin: 0 -12px 10px;
   padding: 12px 12px 8px;
   z-index: 1;
 }
