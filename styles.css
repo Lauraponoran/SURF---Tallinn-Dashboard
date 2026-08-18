@@ -403,7 +403,32 @@ input[type="range"] {
   padding-left: 2px;
 }
 
-#dateFilterInput {
+.filter-accordion-content input,
+.filter-accordion-content select,
+.filter-accordion-content button {
+  box-sizing: border-box;
+}
+
+.filter-date-range {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-date-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-date-field label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sc-text-dim);
+  margin-bottom: 3px;
+}
+
+.filter-date-field input[type="date"] {
   width: 100%;
   padding: 6px;
   border: 1px solid var(--sc-panel-border);
@@ -415,9 +440,46 @@ input[type="range"] {
   color-scheme: dark; /* makes Chrome/Edge render the native calendar popup dark */
 }
 
-#dateFilterInput::-webkit-calendar-picker-indicator {
+.filter-date-field input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.8);
   cursor: pointer;
+}
+
+.filter-date-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.filter-preset-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--sc-panel-border);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: 'Rajdhani', sans-serif;
+  color: var(--sc-text);
+  cursor: pointer;
+}
+
+.filter-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sc-text-bright);
+}
+
+.filter-preset-btn.active {
+  background: var(--sc-cyan);
+  border-color: var(--sc-cyan);
+  color: #06181c;
+  font-weight: 600;
+}
+
+.filter-match-count {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--sc-text-dim);
+  font-style: italic;
 }
 
 /* Stats Panel */

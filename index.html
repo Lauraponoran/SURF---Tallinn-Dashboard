@@ -170,7 +170,23 @@
       <div id="filterAccordionContent" class="filter-accordion-content" hidden>
         <div class="filter-section">
           <div class="filter-section-label">Dates</div>
-          <input type="date" id="dateFilterInput">
+          <div class="filter-date-range">
+            <div class="filter-date-field">
+              <label for="dateFilterFrom">From</label>
+              <input type="date" id="dateFilterFrom">
+            </div>
+            <div class="filter-date-field">
+              <label for="dateFilterTo">To</label>
+              <input type="date" id="dateFilterTo">
+            </div>
+          </div>
+          <div class="filter-date-presets">
+            <button type="button" class="filter-preset-btn" data-preset="all">All</button>
+            <button type="button" class="filter-preset-btn" data-preset="today">Today</button>
+            <button type="button" class="filter-preset-btn" data-preset="yesterday">Yesterday</button>
+            <button type="button" class="filter-preset-btn" data-preset="last7">Last 7 Days</button>
+            <button type="button" class="filter-preset-btn" data-preset="last30">Last 30 Days</button>
+          </div>
         </div>
         <div class="filter-section">
           <div class="filter-section-label">Sensors</div>
@@ -182,6 +198,7 @@
             <!-- populated dynamically by renderFilterPanel() -->
           </div>
         </div>
+        <div id="filterMatchCount" class="filter-match-count"></div>
       </div>
     </div>
 
