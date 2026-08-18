@@ -305,17 +305,27 @@ input[type="range"] {
 #sensorLegend {
   max-height: 170px;
   overflow-y: auto;
-  overflow-x: hidden; /* overflow-y alone silently makes overflow-x
-                          compute as "auto" too, which can clip/scroll
-                          the title horizontally instead of just
-                          rendering it flush */
+  /* FIX: only overflow-y was set here, and per spec a lone non-visible
+     overflow-y silently forces overflow-x to compute as "auto" too
+     (not "visible"). That let the uppercase, letter-spaced "SENSORS"
+     title trip horizontal scroll/clip behavior instead of just sitting
+     flush — reading as "cut off" on the right. Pin it to hidden so the
+     box never scrolls or clips horizontally. */
+  overflow-x: hidden;
   padding-top: 0;
 
-  /* Reserve the scrollbar's track permanently so it's always visible,
-     not just while actively scrolling */
+  /* Reserve the scrollbar's track space permanently (rather than only
+     when a scrollbar is actually needed) so it doesn't shift layout
+     and reads as consistently "always there". */
   scrollbar-gutter: stable;
+
+  /* Scrollbars are hidden globally (see `* { scrollbar-width: none }`
+     above) for aesthetic reasons, but that leaves this box with zero
+     affordance that it scrolls. Re-enable a thin, theme-colored
+     scrollbar scoped to just this element — an ID selector beats the
+     universal `*` rule, so this wins without touching the global hide. */
   scrollbar-width: thin;
-  scrollbar-color: rgba(52, 204, 204, 0.35) transparent;
+  scrollbar-color: rgba(52, 204, 204, 0.6) transparent;
 }
 #sensorLegend::-webkit-scrollbar {
   display: block;
@@ -325,11 +335,11 @@ input[type="range"] {
   background: transparent;
 }
 #sensorLegend::-webkit-scrollbar-thumb {
-  background: rgba(52, 204, 204, 0.35);
+  background: rgba(52, 204, 204, 0.6);
   border-radius: 3px;
 }
 #sensorLegend::-webkit-scrollbar-thumb:hover {
-  background: rgba(52, 204, 204, 0.55);
+  background: rgba(52, 204, 204, 0.85);
 }
 
 #sensorLegend h4 {
@@ -340,8 +350,12 @@ input[type="range"] {
   padding-top: 12px;
   padding-bottom: 2px;
   z-index: 1;
-  width: 100%;        /* stretch the title flush across the full box */
+  /* FIX: force the sticky title's background to span the full box
+     width (including the gutter scrollbar-gutter reserves for the
+     scrollbar) so nothing shows through or gets clipped on the right. */
+  width: 100%;
   box-sizing: border-box;
+  text-align: center;
 }
 
 .speed-color-box {
@@ -806,7 +820,9 @@ input[type="range"] {
 #controlsTab {
   display: none; /* hidden on desktop; shown via media query below */
   position: fixed;
-  top: 14px;
+  top: 6px; /* was 14px — with the button's own padding/border it was
+               ~34px tall, putting its bottom edge right against the
+               "BIKE ROUTES" title underline below it */
   left: 10px;
   transform: none;
   z-index: 9999;
@@ -829,7 +845,7 @@ input[type="range"] {
   white-space: nowrap;
 }
 #controlsTab.open {
-  left: 232px;
+  left: 264px;
 }
 #controlsTab:hover {
   background: rgba(52, 204, 204, 0.12);
@@ -843,7 +859,7 @@ input[type="range"] {
   display: flex;
   z-index: 9999;
   position: fixed;
-  top: 14px;
+  top: 6px;
   left: 10px;
 }
 
