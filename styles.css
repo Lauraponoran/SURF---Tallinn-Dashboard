@@ -855,7 +855,10 @@ input[type="range"] {
   white-space: nowrap;
 }
 #controlsTab.open {
-  left: 232px;
+  left: 224px; /* panel is 280px wide with 15px padding (same padding
+                  that insets Filter Trips and the checkboxes), and
+                  the tab itself is ~41px wide, so 280 - 15 - 41 = 224
+                  lines its right edge up with that same 15px margin. */
 }
 #controlsTab:hover {
   background: rgba(52, 204, 204, 0.12);
