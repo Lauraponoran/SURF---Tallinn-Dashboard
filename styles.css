@@ -307,6 +307,46 @@ input[type="range"] {
   display: none;
 }
 
+/* Filter panel (sensor checkboxes + date) */
+#filterLegend {
+  max-width: 220px;
+}
+
+.filter-sensor-item {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.filter-sensor-item input[type="checkbox"] {
+  margin: 0 8px 0 0;
+  accent-color: var(--sc-cyan);
+  cursor: pointer;
+}
+
+.filter-sensor-item span {
+  color: var(--sc-text);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+#dateFilterInput {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid var(--sc-panel-border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--sc-text-bright);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+}
+
+#dateFilterInput::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
+
 /* Stats Panel */
 #stats {
   position: absolute;

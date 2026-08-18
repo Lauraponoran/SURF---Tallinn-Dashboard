@@ -162,20 +162,6 @@
       </label>
     </div>
 
-    <div class="control-group">
-      <label for="sensorFilterSelect">Filter by sensor</label>
-      <select id="sensorFilterSelect">
-        <option value="">All sensors</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label for="dateFilterSelect">Filter by date</label>
-      <select id="dateFilterSelect">
-        <option value="">All dates</option>
-      </select>
-    </div>
-
     <button id="resetButton">↩ Reset View</button>
   </div>
 
@@ -263,6 +249,15 @@
 
   <div class="legend" id="sensorLegend" style="display:none;">
     <!-- populated dynamically by renderSensorLegend() -->
+  </div>
+
+  <div class="legend" id="filterLegend">
+    <h4>Filter Trips</h4>
+    <div id="filterSensorList">
+      <!-- populated dynamically by renderFilterPanel() -->
+    </div>
+    <div class="legend-note" style="margin-top:8px;">Date</div>
+    <input type="date" id="dateFilterInput">
   </div>
 
 </div>
