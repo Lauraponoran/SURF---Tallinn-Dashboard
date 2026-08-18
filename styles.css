@@ -303,7 +303,14 @@ input[type="range"] {
    padding and re-add the same visual spacing on the title itself,
    which scrolls out of the way normally and then sticks flush. */
 #sensorLegend {
-  max-height: 170px;
+  max-height: 140px; /* was 170px — with ~8-9 sensors at roughly
+                         24-26px per row, 170px left just enough
+                         headroom that a shorter list might not
+                         overflow at all, meaning no thumb could ever
+                         render no matter how the scrollbar is styled.
+                         140px reliably forces overflow (and therefore
+                         a persistent, visible thumb) once there are
+                         more than ~4-5 sensors. */
   overflow-y: scroll; /* was auto — scroll guarantees the track is
                           always rendered rather than only when the
                           browser recalculates that content overflows */
@@ -339,6 +346,7 @@ input[type="range"] {
 #sensorLegend::-webkit-scrollbar-thumb {
   background: rgba(52, 204, 204, 0.6);
   border-radius: 3px;
+  min-height: 24px;
 }
 #sensorLegend::-webkit-scrollbar-thumb:hover {
   background: rgba(52, 204, 204, 0.85);
