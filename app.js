@@ -270,9 +270,11 @@ function resetSelection() {
     if (el) el.checked = false;
   });
 
-  selectedSensorFilters.clear();
+  selectedSensorFilters = new Set(Object.keys(sensorColorMap));
   selectedDateFilter = '';
-  document.querySelectorAll('.filterSensorCheckbox').forEach(cb => { cb.checked = false; });
+  const allCb = document.getElementById('filterSensorAll');
+  if (allCb) { allCb.checked = true; allCb.indeterminate = false; }
+  document.querySelectorAll('.filterSensorCheckbox').forEach(cb => { cb.checked = true; });
   const dateInput = document.getElementById('dateFilterInput');
   if (dateInput) dateInput.value = '';
 
@@ -692,7 +694,7 @@ function updateStatsVisibility() {
 window.addEventListener('resize', updateStatsVisibility);
 
 function updateLegendPositions() {
-  const order   = ['averagedSegmentsLegend','speedLegend','roadQualityLegend','brakingLegend','sensorLegend','filterLegend'];
+  const order   = ['averagedSegmentsLegend','speedLegend','roadQualityLegend','brakingLegend','sensorLegend'];
   const visible = order.map(id => document.getElementById(id)).filter(el => el && el.style.display === 'block');
   const mobile  = window.matchMedia('(max-width: 768px)').matches;
   updateStatsVisibility();
@@ -918,58 +920,90 @@ function getTripDate(tripId) {
 
 // ─── Sensor + date filter panel ────────────────────────────────────────────────
 function renderFilterPanel() {
+  const toggleBtn  = document.getElementById('filterAccordionToggle');
+  const content    = document.getElementById('filterAccordionContent');
+  const accordion  = toggleBtn ? toggleBtn.closest('.filter-accordion') : null;
   const listEl     = document.getElementById('filterSensorList');
+  const allCb      = document.getElementById('filterSensorAll');
   const dateInput  = document.getElementById('dateFilterInput');
-  const filterPanel = document.getElementById('filterLegend');
-  if (!listEl || !dateInput || !filterPanel) return;
+  if (!toggleBtn || !content || !listEl || !allCb || !dateInput) return;
 
+  // Accordion open/close
+  toggleBtn.onclick = () => {
+    content.hidden = !content.hidden;
+    if (accordion) accordion.classList.toggle('open', !content.hidden);
+  };
+
+  // Sensors default to "all selected" = no filtering
   const sensors = Object.keys(sensorColorMap).sort();
+  selectedSensorFilters = new Set(sensors);
+
   listEl.innerHTML = sensors.map(s => `
     <label class="filter-sensor-item">
-      <input type="checkbox" class="filterSensorCheckbox" value="${s}">
+      <input type="checkbox" class="filterSensorCheckbox" value="${s}" checked>
       <div class="speed-color-box" style="background:${sensorColorMap[s]};"></div>
       <span>${s}</span>
     </label>`).join('');
 
-  listEl.querySelectorAll('.filterSensorCheckbox').forEach(cb => {
+  const sensorCbs = [...listEl.querySelectorAll('.filterSensorCheckbox')];
+
+  function syncAllCheckbox() {
+    if (selectedSensorFilters.size === sensors.length) {
+      allCb.checked = true; allCb.indeterminate = false;
+    } else if (selectedSensorFilters.size === 0) {
+      allCb.checked = false; allCb.indeterminate = false;
+    } else {
+      allCb.checked = false; allCb.indeterminate = true;
+    }
+  }
+
+  sensorCbs.forEach(cb => {
     cb.addEventListener('change', () => {
       if (cb.checked) selectedSensorFilters.add(cb.value);
       else selectedSensorFilters.delete(cb.value);
+      syncAllCheckbox();
       applyDropdownFilters();
     });
   });
 
+  allCb.addEventListener('change', () => {
+    const checkAll = allCb.checked;
+    sensorCbs.forEach(cb => { cb.checked = checkAll; });
+    selectedSensorFilters = new Set(checkAll ? sensors : []);
+    allCb.indeterminate = false;
+    applyDropdownFilters();
+  });
+
+  // Dates — auto-hide the whole "Dates" section if trips.geojson has no
+  // timestamps yet (needs a pipeline regeneration)
   const dates = [...new Set(Object.values(tripDates))].filter(Boolean).sort();
-  const dateNote = filterPanel.querySelector('.legend-note');
+  const dateSection = dateInput.closest('.filter-section');
   if (dates.length) {
     dateInput.min = dates[0];
     dateInput.max = dates[dates.length - 1];
-    dateInput.style.display = '';
-    if (dateNote) dateNote.style.display = '';
-  } else {
-    // No timestamps in this trips.geojson yet (needs pipeline regeneration)
-    dateInput.style.display = 'none';
-    if (dateNote) dateNote.style.display = 'none';
+    if (dateSection) dateSection.style.display = '';
+  } else if (dateSection) {
+    dateSection.style.display = 'none';
   }
 
   dateInput.addEventListener('change', () => {
     selectedDateFilter = dateInput.value;
     applyDropdownFilters();
   });
-
-  filterPanel.style.display = 'block';
-  updateLegendPositions();
 }
 
 function applyDropdownFilters() {
-  if (selectedSensorFilters.size === 0 && !selectedDateFilter) {
+  const sensors = Object.keys(sensorColorMap);
+  const noSensorFilter = selectedSensorFilters.size === sensors.length;
+
+  if (noSensorFilter && !selectedDateFilter) {
     resetSelection();
     return;
   }
 
   let matches = tripIds;
-  if (selectedSensorFilters.size > 0) matches = matches.filter(id => selectedSensorFilters.has(id.split('_')[0]));
-  if (selectedDateFilter)             matches = matches.filter(id => tripDates[id] === selectedDateFilter);
+  if (!noSensorFilter)    matches = matches.filter(id => selectedSensorFilters.has(id.split('_')[0]));
+  if (selectedDateFilter) matches = matches.filter(id => tripDates[id] === selectedDateFilter);
 
   if (matches.length === 0) {
     if (currentPopup) { currentPopup.remove(); currentPopup = null; }

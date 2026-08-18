@@ -162,6 +162,29 @@
       </label>
     </div>
 
+    <div class="control-group filter-accordion">
+      <button type="button" id="filterAccordionToggle" class="filter-accordion-header">
+        <span>Filter Trips</span>
+        <span class="filter-accordion-chevron">⌄</span>
+      </button>
+      <div id="filterAccordionContent" class="filter-accordion-content" hidden>
+        <div class="filter-section">
+          <div class="filter-section-label">Dates</div>
+          <input type="date" id="dateFilterInput">
+        </div>
+        <div class="filter-section">
+          <div class="filter-section-label">Sensors</div>
+          <label class="filter-sensor-item filter-sensor-all">
+            <input type="checkbox" id="filterSensorAll" checked>
+            <span>All</span>
+          </label>
+          <div id="filterSensorList">
+            <!-- populated dynamically by renderFilterPanel() -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button id="resetButton">↩ Reset View</button>
   </div>
 
@@ -249,15 +272,6 @@
 
   <div class="legend" id="sensorLegend" style="display:none;">
     <!-- populated dynamically by renderSensorLegend() -->
-  </div>
-
-  <div class="legend" id="filterLegend">
-    <h4>Filter Trips</h4>
-    <div id="filterSensorList">
-      <!-- populated dynamically by renderFilterPanel() -->
-    </div>
-    <div class="legend-note" style="margin-top:8px;">Date</div>
-    <input type="date" id="dateFilterInput">
   </div>
 
 </div>
