@@ -105,23 +105,28 @@ marker_bounds as (
          order by d1.samples limit 1) as end_sample
     from params p
 ),
+-- Parse each raw_data blob exactly once. Without MATERIALIZED, Postgres is
+-- free to inline this subquery and re-run string_to_array/convert_from
+-- once per generate_series value below (20x per row) instead of once per
+-- row -- see csv_export_query.txt for the original diagnosis/benchmark.
+parsed as materialized (
+    select rd.samples,
+           string_to_array(
+               replace(replace(convert_from(rd.data, 'UTF8'), '[', ''), ']', ''),
+               ','
+           ) as vals
+    from public.raw_data rd
+    join marker_bounds mb on mb.trip_id = rd.trip_id
+    where rd.trip_id = (select trip_id from params)
+      and rd.samples >= mb.start_sample
+      and rd.samples - 9 <= mb.end_sample
+),
 x as (
     select
         rd.samples - 9 + gs.i as output_samples,
         trim(vals[gs.i * 4 + 1])::integer as acc_low,
         trim(vals[gs.i * 4 + 2])::integer as acc_high
-    from (
-        select rd.samples,
-               string_to_array(
-                   replace(replace(convert_from(rd.data, 'UTF8'), '[', ''), ']', ''),
-                   ','
-               ) as vals
-        from public.raw_data rd
-        join marker_bounds mb on mb.trip_id = rd.trip_id
-        where rd.trip_id = (select trip_id from params)
-          and rd.samples >= mb.start_sample
-          and rd.samples - 9 <= mb.end_sample
-    ) rd
+    from parsed rd
     cross join generate_series(0, 9) as gs(i)
 )
 select
